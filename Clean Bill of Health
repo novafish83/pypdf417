@@ -1,0 +1,67 @@
+!pip install SpeechRecognition pyaudio python-dotenv
+import os
+from dotenv import load_dotenv
+import speech_recognition as sr
+from pyaudio import PyAudio, paInt16
+import random
+
+# Load environment variables from a .env file if it exists
+load_dotenv()
+
+class DualModeAI:
+    def __init__(self):
+        # Use environment variable for the fail-safe trigger
+        self.fail_safe_trigger = os.getenv('FAIL_SAFE_TRIGGER', 'default_fallback')
+        self.active = True
+        self.voice_recognizer = sr.Recognizer()
+        # Placeholder for voice recognition model
+        self.voice_model = None  # In reality, this would be your trained model
+
+    def check_fail_safe(self, audio_data):
+        with sr.AudioFile(audio_data) as source:
+            audio = self.voice_recognizer.record(source)
+        try:
+            text = self.voice_recognizer.recognize_google(audio)
+            if text.lower() == self.fail_safe_trigger.lower():
+                if self.is_voice_mine(audio_data):  # This check would be more complex in practice
+                    self.disintegrate()
+                    return True
+        except sr.UnknownValueError:
+            print("Could not understand audio")
+        except sr.RequestError as e:
+            print(f"Could not request results from Speech Recognition service; {e}")
+        return False
+
+    def is_voice_mine(self, audio_data):
+        # This is a very simplified method; actual implementation would involve feature extraction and ML
+        if self.voice_model:
+            # Here, you'd extract features from audio and predict with the model
+            # For now, we'll use a mock return
+            return random.choice([True, False])  # Random for simulation purposes
+        return False
+
+    def disintegrate(self):
+        print("Fail-safe activated. Disintegrating AI operations.")
+        self.active = False
+        # In a real scenario, you'd clear all sensitive data, save logs, etc.
+
+    def act(self, environment, audio_input=None):
+        if not self.active:
+            return "AI is inactive due to fail-safe activation."
+        
+        if audio_input and self.check_fail_safe(audio_input):
+            return
+        
+        # Placeholder for normal AI operations
+        print("AI performing normal operations.")
+        return "Action performed"
+
+# Example usage
+if __name__ == "__main__":
+    ai = DualModeAI()
+
+    # Simulate audio input - in a real scenario, this would be live from a microphone
+    audio_file = "path/to/your/audio_file.wav"  # Replace with actual audio file path
+    ai.act({}, audio_file)
+
+    # For testing the fail-safe, you might set up another script to simulate voice input
